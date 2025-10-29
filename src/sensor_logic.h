@@ -8,6 +8,7 @@
 void sensor_init(void);
 void sensor_prepare_payload(void);
 void sensor_start_transfer(void);
+void sensor_stop_transfer(void);
 void sensor_on_rx_cmd(struct bt_conn *conn, const uint8_t *data, uint16_t len);
 
 #endif // SENSOR_LOGIC_H

@@ -123,21 +123,27 @@ static void disconnected(struct bt_conn *conn, uint8_t reason)
     char addr[BT_ADDR_LE_STR_LEN];
 
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-    // show address and reason
-    LOG_INF("Disconnected: %s, reason 0x%02x %s", addr, reason, bt_hci_err_to_str(reason));
+
+    LOG_INF("Disconnected from %s (reason 0x%02x)", addr, reason);
 
     if (current_conn) {
-        bt_conn_unref(current_conn); // decrements global var
+        bt_conn_unref(current_conn);
         current_conn = NULL;
-        dk_set_led_off(CON_STATUS_LED); // turn off LED2
+        // Immediately stop any ongoing data transfer.
+        sensor_stop_transfer();
     }
+
+    // Restart advertising
+    k_work_submit(&adv_work);
 }
 
-// happens on disconnect
+/*
+ * This callback is triggered when the stack is about to reuse a connection object.
+ * It must be defined to satisfy the BT_CONN_CB_DEFINE macro's requirements.
+ */
 static void recycled_cb(void)
 {
-    LOG_INF("Connection object available from previous conn. Disconnect is complete!");
-    advertising_start();
+    /* Do nothing */
 }
 
 BT_CONN_CB_DEFINE(conn_callbacks) = {
